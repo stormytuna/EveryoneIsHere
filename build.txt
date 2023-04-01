@@ -1,0 +1,3 @@
+displayName = Everyone Is Here
+author = stormytuna
+version = 0.1
