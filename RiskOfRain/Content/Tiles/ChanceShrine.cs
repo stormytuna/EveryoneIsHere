@@ -17,8 +17,6 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
 {
     public class ChanceShrine : ModTile
     {
-        private readonly int ChanceShrineCost = 100000; // 10 Gold
-
         private readonly int[] ChanceShrineItems = new int[] {
             // TODO: Add modded items here
             ItemID.CloudinaBottle,
@@ -27,6 +25,14 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
         };
 
         private static bool IsShrineActive(int i, int j) {
+            if (TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
+                return chanceShrineEntity.Active;
+            }
+
+            return false;
+        }
+
+        private static bool IsShrineInteractible(int i, int j) {
             if (TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
                 return chanceShrineEntity.Active && chanceShrineEntity.InteractionCooldown <= 0;
             }
@@ -69,7 +75,7 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
         }
 
         public override void MouseOver(int i, int j) {
-            if (!IsShrineActive(i, j) || !TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
+            if (!IsShrineInteractible(i, j) || !TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
                 return;
             }
 
@@ -84,12 +90,12 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
         }
 
         public override bool RightClick(int i, int j) {
-            if (!IsShrineActive(i, j) || !TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
+            if (!IsShrineInteractible(i, j) || !TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
                 return false;
             }
 
             Player player = Main.LocalPlayer;
-            if (!player.CanBuyItem(ChanceShrineCost)) {
+            if (!player.CanBuyItem(chanceShrineEntity.Price)) {
                 SoundEngine.PlaySound(EveryoneIsHereSounds.ShrineInsufficientFunds);
                 return false;
             }
@@ -114,7 +120,8 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
                 }
             }
 
-            player.BuyItem(ChanceShrineCost);
+            player.BuyItem(chanceShrineEntity.Price);
+            chanceShrineEntity.InteractionCooldown = 100;
 
             Point16 tileOrigin = TileUtils.GetTileOrigin(i, j);
             Vector2 tileOriginWorldPosition = tileOrigin.ToWorldCoordinates();
@@ -148,7 +155,7 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
     public class ChanceShrine_TileEntity : ModTileEntity
     {
         public bool Active { get; set; } = true;
-        public int Price { get; set; } = Item.sellPrice(gold: 10);
+        public int Price { get; set; } = 100000;
         public int InteractionCooldown { get; set; } = 0;
 
         public override bool IsTileValidForEntity(int x, int y) {
