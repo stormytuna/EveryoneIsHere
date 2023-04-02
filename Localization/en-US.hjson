@@ -1,6 +1,16 @@
 
 Mods: {
 	EveryoneIsHere: {
-		Tiles.ChanceShrine.MapEntry: Chance Shrine
+		Tiles: {
+			ChanceShrine.MapEntry: Chance Shrine
+			SacrificeShrine.MapEntry: Sacrifice Shrine
+		}
+
+		Buffs: {
+			LifeDebt: {
+				DisplayName: Life Debt
+				Description: Mods.EveryoneIsHere.Buffs.LifeDebt.Description
+			}
+		}
 	}
 }

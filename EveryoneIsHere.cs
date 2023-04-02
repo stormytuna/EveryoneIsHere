@@ -1,8 +1,5 @@
 using Terraria.ModLoader;
 
-namespace EveryoneIsHere
-{
-	public class EveryoneIsHere : Mod
-	{
-	}
-}
+namespace EveryoneIsHere;
+
+public class EveryoneIsHere : Mod { }
