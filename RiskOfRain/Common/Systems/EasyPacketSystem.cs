@@ -23,6 +23,7 @@ namespace EveryoneIsHere.RiskOfRain.Common.Systems
         private void OnSyncChanceShrineTileEntityPacketReceived(in SyncChanceShrineTileEntityPacket packet, in SenderInfo sender, ref bool handled) {
             if (TileUtils.TryGetTileEntityAs(packet.PositionX, packet.PositionY, out ChanceShrine_TileEntity chanceShrineEntity)) {
                 chanceShrineEntity.Active = packet.IsActive;
+                chanceShrineEntity.Price = packet.Price;
                 handled = true;
             }
         }

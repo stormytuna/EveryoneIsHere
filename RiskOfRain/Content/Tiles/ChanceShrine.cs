@@ -28,7 +28,7 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
 
         private static bool IsShrineActive(int i, int j) {
             if (TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
-                return chanceShrineEntity.Active;
+                return chanceShrineEntity.Active && chanceShrineEntity.InteractionCooldown <= 0;
             }
 
             return false;
@@ -69,14 +69,14 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
         }
 
         public override void MouseOver(int i, int j) {
-            if (!IsShrineActive(i, j)) {
+            if (!IsShrineActive(i, j) || !TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
                 return;
             }
 
             Player player = Main.LocalPlayer;
 
             player.cursorItemIconID = -1;
-            player.cursorItemIconText = $"[i:{ItemID.GoldCoin}]10";
+            player.cursorItemIconText = GeneralUtils.CoinValueToString(chanceShrineEntity.Price);
             player.noThrow = 2;
             player.cursorItemIconEnabled = true;
 
@@ -84,7 +84,7 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
         }
 
         public override bool RightClick(int i, int j) {
-            if (!IsShrineActive(i, j)) {
+            if (!IsShrineActive(i, j) || !TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
                 return false;
             }
 
@@ -94,30 +94,52 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
                 return false;
             }
 
-            if (Main.rand.NextBool(2)) {
-                // Success
+            bool shrineAttemptSuccess = Main.rand.NextBool(1);
 
+            if (shrineAttemptSuccess) {
                 int newItemIndex = Item.NewItem(new EntitySource_TileInteraction(player, i, j), i * 16, j * 16, 16, 16, Main.rand.Next(ChanceShrineItems));
                 Main.item[newItemIndex].noGrabDelay = 100;
-                if (TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
-                    chanceShrineEntity.Active = false;
+                chanceShrineEntity.Active = false;
 
-                    if (Main.netMode == NetmodeID.MultiplayerClient) {
-                        NetMessage.SendData(MessageID.SyncItem, -1, -1, null, newItemIndex, 1f);
-                        Mod.SendPacket(new SyncChanceShrineTileEntityPacket(chanceShrineEntity.Position.X, chanceShrineEntity.Position.Y, false), forward: true);
-                    }
+                if (Main.netMode == NetmodeID.MultiplayerClient) {
+                    NetMessage.SendData(MessageID.SyncItem, -1, -1, null, newItemIndex, 1f);
+                    Mod.SendPacket(new SyncChanceShrineTileEntityPacket(chanceShrineEntity.Position.X, chanceShrineEntity.Position.Y, chanceShrineEntity.Active, chanceShrineEntity.Price), forward: true);
                 }
-
-                // TODO: Visuals
             } else {
-                // Failure
+                int newPrice = (int)(chanceShrineEntity.Price * 1.5f);
+                chanceShrineEntity.Price = newPrice;
 
-                // TODO: Visuals
+                if (Main.netMode == NetmodeID.MultiplayerClient) {
+                    Mod.SendPacket(new SyncChanceShrineTileEntityPacket(chanceShrineEntity.Position.X, chanceShrineEntity.Position.Y, chanceShrineEntity.Active, chanceShrineEntity.Price), forward: true);
+                }
+            }
+
+            player.BuyItem(ChanceShrineCost);
+
+            Point16 tileOrigin = TileUtils.GetTileOrigin(i, j);
+            Vector2 tileOriginWorldPosition = tileOrigin.ToWorldCoordinates();
+            Vector2 dustOriginPosition = tileOriginWorldPosition + new Vector2(16f, 5f);
+            for (int iterator = 0; iterator < 30; iterator++) {
+                float rotValue = (iterator / 20f) * MathHelper.TwoPi;
+                Vector2 dustOffset = Vector2.UnitX.RotatedBy(rotValue) * 30f;
+                Vector2 dustPosition = dustOffset + dustOriginPosition;
+                int dustType = shrineAttemptSuccess ? DustID.GreenTorch : DustID.RedTorch;
+                Dust newDust = Dust.NewDustPerfect(dustPosition, dustType);
+                newDust.velocity = dustPosition.DirectionTo(dustOriginPosition) * 2f;
+                newDust.noGravity = true;
+                newDust.scale = 1.3f;
+            }
+            for (int iterator = 0; iterator < 10; iterator++) {
+                Vector2 dustOffset = Main.rand.NextVector2Circular(8f, 8f);
+                Vector2 dustPosition = dustOffset + dustOriginPosition;
+                int dustType = shrineAttemptSuccess ? DustID.GreenTorch : DustID.RedTorch;
+                Dust newDust = Dust.NewDustPerfect(dustPosition, dustType);
+                newDust.velocity = Vector2.Zero;
+                newDust.noGravity = true;
+                newDust.scale = 1.3f;
             }
 
             SoundEngine.PlaySound(EveryoneIsHereSounds.ShrineActivate);
-
-            player.BuyItem(ChanceShrineCost);
 
             return true;
         }
@@ -126,6 +148,8 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
     public class ChanceShrine_TileEntity : ModTileEntity
     {
         public bool Active { get; set; } = true;
+        public int Price { get; set; } = Item.sellPrice(gold: 10);
+        public int InteractionCooldown { get; set; } = 0;
 
         public override bool IsTileValidForEntity(int x, int y) {
             return Main.tile[x, y].HasTile && Main.tile[x, y].TileType == ModContent.TileType<ChanceShrine>();
@@ -143,6 +167,12 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
             }
 
             return Place(topLeftX, topLeftY);
+        }
+
+        public override void Update() {
+            InteractionCooldown--;
+
+            base.Update();
         }
 
         public override void OnNetPlace() => NetMessage.SendData(MessageID.TileEntitySharing, -1, -1, null, ID, Position.X, Position.Y);
