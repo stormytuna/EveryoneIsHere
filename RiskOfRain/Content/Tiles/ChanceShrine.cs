@@ -48,7 +48,9 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
             Main.tileSpelunker[Type] = true;
             TileID.Sets.HasOutlines[Type] = true;
 
-            TileObjectData.newTile.CopyFrom(TileObjectData.Style3x4);
+            TileObjectData.newTile.CopyFrom(TileObjectData.Style2xX);
+            TileObjectData.newTile.Height = 3;
+            TileObjectData.newTile.CoordinateHeights = new[] { 16, 16, 16 };
             TileObjectData.newTile.LavaDeath = false;
             TileObjectData.newTile.DrawYOffset = 2;
             TileObjectData.newTile.StyleHorizontal = true;
@@ -60,7 +62,7 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
             DustType = DustID.Stone;
 
             LocalizedText shrineName = CreateMapEntryName();
-            AddMapEntry(new Color(144, 148, 144));
+            AddMapEntry(new Color(144, 148, 144), shrineName);
         }
 
         public override bool CanKillTile(int i, int j, ref bool blockDamaged) => !IsShrineActive(i, j);
@@ -73,7 +75,7 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
 
             base.KillMultiTile(i, j, frameX, frameY);
         }
-
+        
         public override void MouseOver(int i, int j) {
             if (!IsShrineInteractible(i, j) || !TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
                 return;
@@ -125,7 +127,7 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
 
             Point16 tileOrigin = TileUtils.GetTileOrigin(i, j);
             Vector2 tileOriginWorldPosition = tileOrigin.ToWorldCoordinates();
-            Vector2 dustOriginPosition = tileOriginWorldPosition + new Vector2(16f, 5f);
+            Vector2 dustOriginPosition = tileOriginWorldPosition + new Vector2(8f, 8f);
             for (int iterator = 0; iterator < 30; iterator++) {
                 float rotValue = (iterator / 20f) * MathHelper.TwoPi;
                 Vector2 dustOffset = Vector2.UnitX.RotatedBy(rotValue) * 30f;
@@ -183,7 +185,7 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
         }
 
         public override void OnNetPlace() => NetMessage.SendData(MessageID.TileEntitySharing, -1, -1, null, ID, Position.X, Position.Y);
-
+        
         public override void NetSend(BinaryWriter writer) {
             writer.Write(Active);
 
