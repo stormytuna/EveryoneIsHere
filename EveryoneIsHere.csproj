@@ -21,4 +21,7 @@
       <HintPath>..\..\..\..\..\..\Downloads\StructureHelper.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="RiskOfRain\Assets\Sounds\" />
+  </ItemGroup>
 </Project>

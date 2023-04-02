@@ -4,6 +4,7 @@ using EveryoneIsHere.RiskOfRain.Common.EasyPackets;
 using Microsoft.Xna.Framework;
 using System.IO;
 using Terraria;
+using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.Enums;
 using Terraria.GameContent.ObjectInteractions;
@@ -82,7 +83,7 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
 
             Player player = Main.LocalPlayer;
             if (!player.CanBuyItem(ChanceShrineCost)) {
-                // TODO: Play insufficient funds sound
+                SoundEngine.PlaySound(EveryoneIsHereSounds.ShrineInsufficientFunds);
                 return false;
             }
 
@@ -99,10 +100,10 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
                 Main.item[newItemIndex].noGrabDelay = 100;
                 if (TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
                     chanceShrineEntity.Active = false;
-                    Mod.SendPacket(new SyncChanceShrineTileEntityPacket(chanceShrineEntity.Position.X, chanceShrineEntity.Position.Y, false), forward: true);
 
                     if (Main.netMode == NetmodeID.MultiplayerClient) {
                         NetMessage.SendData(MessageID.SyncItem, -1, -1, null, newItemIndex, 1f);
+                        Mod.SendPacket(new SyncChanceShrineTileEntityPacket(chanceShrineEntity.Position.X, chanceShrineEntity.Position.Y, false), forward: true);
                     }
                 }
 
@@ -113,7 +114,8 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
                 // TODO: Visuals
             }
 
-            // TODO: Play Shrine Activate sound
+            SoundEngine.PlaySound(EveryoneIsHereSounds.ShrineActivate);
+
             player.BuyItem(ChanceShrineCost);
 
             return true;
