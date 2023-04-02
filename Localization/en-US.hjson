@@ -2,12 +2,5 @@
 Mods: {
 	EveryoneIsHere: {
 		Tiles.ChanceShrine.MapEntry: Chance Shrine
-
-		Items: {
-			TestItem: {
-				DisplayName: Test Item
-				Tooltip: ""
-			}
-		}
 	}
 }

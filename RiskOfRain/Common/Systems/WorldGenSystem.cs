@@ -23,7 +23,7 @@ namespace EveryoneIsHere.RiskOfRain.Common.Systems
         private void Shrines(GenerationProgress progress, GameConfiguration _) {
             progress.Message = "Placing Shrines";
 
-            for (int i = 0; i < Main.maxTilesX * Main.maxTilesY * 1E-01; i++) {
+            for (int i = 0; i < Main.maxTilesX * Main.maxTilesY * 4E-05; i++) {
                 int x = WorldGen.genRand.Next(40, Main.maxTilesX - 40);
                 int y = WorldGen.genRand.Next((int)Main.rockLayer, Main.UnderworldLayer);
 
