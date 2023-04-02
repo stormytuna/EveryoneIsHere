@@ -19,6 +19,13 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
     {
         private readonly int ChanceShrineCost = 100000; // 10 Gold
 
+        private readonly int[] ChanceShrineItems = new int[] {
+            // TODO: Add modded items here
+            ItemID.CloudinaBottle,
+            ItemID.BandofRegeneration,
+            ItemID.HermesBoots
+        };
+
         private static bool IsShrineActive(int i, int j) {
             if (TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
                 return chanceShrineEntity.Active;
@@ -90,13 +97,7 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
             if (Main.rand.NextBool(2)) {
                 // Success
 
-                int[] itemTypes = new int[] {
-                    ItemID.DirtBlock,
-                    ItemID.Zenith,
-                    ItemID.ZapinatorGray
-                };
-
-                int newItemIndex = Item.NewItem(new EntitySource_TileInteraction(player, i, j), i * 16, j * 16, 16, 16, Main.rand.Next(itemTypes));
+                int newItemIndex = Item.NewItem(new EntitySource_TileInteraction(player, i, j), i * 16, j * 16, 16, 16, Main.rand.Next(ChanceShrineItems));
                 Main.item[newItemIndex].noGrabDelay = 100;
                 if (TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
                     chanceShrineEntity.Active = false;
