@@ -94,7 +94,7 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles
                 return false;
             }
 
-            bool shrineAttemptSuccess = Main.rand.NextBool(1);
+            bool shrineAttemptSuccess = Main.rand.NextBool(2);
 
             if (shrineAttemptSuccess) {
                 int newItemIndex = Item.NewItem(new EntitySource_TileInteraction(player, i, j), i * 16, j * 16, 16, 16, Main.rand.Next(ChanceShrineItems));
