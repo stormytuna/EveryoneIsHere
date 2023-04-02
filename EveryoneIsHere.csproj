@@ -6,6 +6,9 @@
     <TargetFramework>net6.0</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>latest</LangVersion>
+    <DotNetPath Condition=" '$(OS)' == 'Windows_NT' ">dotnet.exe</DotNetPath>
+    <DotNetPath Condition=" '$(OS)' == 'Unix' ">dotnet</DotNetPath>
+    <DotNetPath Condition=" '$(DotNetPath)' == '' ">dotnet</DotNetPath>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Localization\en-US.hjson" />
@@ -14,14 +17,14 @@
     <PackageReference Include="tModLoader.CodeAssist" Version="0.1.*" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="EasyPacketsLib">
-      <HintPath>..\..\..\..\..\..\Downloads\EasyPacketsLib.dll</HintPath>
-    </Reference>
-    <Reference Include="StructureHelper">
-      <HintPath>..\..\..\..\..\..\Downloads\StructureHelper.dll</HintPath>
-    </Reference>
+    <Folder Include="RiskOfRain\Assets\Sounds\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="RiskOfRain\Assets\Sounds\" />
+    <Reference Include="EasyPacketsLib">
+      <HintPath>..\..\..\..\..\CSLibs\EasyPacketsLib.dll</HintPath>
+    </Reference>
+    <Reference Include="StructureHelper">
+      <HintPath>..\..\..\..\..\CSLibs\StructureHelper.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
