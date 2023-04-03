@@ -16,10 +16,13 @@ public class FocusCrystal : ModItem
 	}
 
 	public override void SetDefaults() {
+		// Base properties
 		Item.width = 22;
 		Item.height = 22;
 		Item.value = Item.sellPrice(silver: 15);
 		Item.rare = ItemRarityID.Green;
+
+		// Other properties
 		Item.accessory = true;
 
 		base.SetDefaults();
@@ -101,9 +104,10 @@ public class FocusCrystalPlayer : ModPlayer
 		for (int i = 0; i < numDust; i++) {
 			Vector2 dustPositionOffset = Main.rand.NextVector2CircularEdge(FocusCrystalRange, FocusCrystalRange);
 			Vector2 dustPosition = drawInfo.drawPlayer.MountedCenter + dustPositionOffset;
+			Point dustTileCoordinates = dustPosition.ToTileCoordinates();
 
-			Tile tile = Framing.GetTileSafely(dustPosition.ToTileCoordinates());
-			if (tile.HasTile && Main.tileSolid[tile.TileType]) {
+			Tile tile = Framing.GetTileSafely(dustTileCoordinates);
+			if (tile.HasTile && WorldGen.SolidTile(dustTileCoordinates.X, dustTileCoordinates.Y)) {
 				continue;
 			}
 

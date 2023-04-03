@@ -30,7 +30,5 @@ Mods: {
 				Tooltip: 8% increased damage and 20% increased movement speed
 			}
 		}
-
-		Projectiles.FocusCrystalAuraProjectile.DisplayName: Focus Crystal Aura Projectile
 	}
 }

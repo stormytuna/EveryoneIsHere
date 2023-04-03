@@ -15,7 +15,7 @@ public static class TileUtils
 		for (int i = minX; i < maxX; i++) {
 			for (int j = minY; j < maxY; j++) {
 				Tile tile = Main.tile[i, j];
-				if (tile.HasTile && Main.tileSolid[tile.TileType]) {
+				if (tile.HasTile && WorldGen.SolidTile(i, j)) {
 					tiles.Add(tile);
 				}
 			}

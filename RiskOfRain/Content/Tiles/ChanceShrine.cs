@@ -8,7 +8,6 @@ using Terraria.DataStructures;
 using Terraria.Enums;
 using Terraria.GameContent.ObjectInteractions;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ObjectData;
 
@@ -58,8 +57,7 @@ public class ChanceShrine : ModTile
 
 		DustType = DustID.Stone;
 
-		LocalizedText shrineName = CreateMapEntryName();
-		AddMapEntry(new Color(144, 148, 144), shrineName);
+		AddMapEntry(new Color(144, 148, 144), CreateMapEntryName());
 
 		base.SetStaticDefaults();
 	}
