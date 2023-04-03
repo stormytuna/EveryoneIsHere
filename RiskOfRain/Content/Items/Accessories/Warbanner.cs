@@ -1,4 +1,5 @@
 ﻿using EveryoneIsHere.Helpers;
+using EveryoneIsHere.RiskOfRain.Content.Tiles;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -17,11 +18,15 @@ public class Warbanner : ModItem
 	}
 
 	public override void SetDefaults() {
+		// Base properties
 		Item.width = 46;
 		Item.height = 58;
 		Item.value = Item.sellPrice(silver: 54);
 		Item.rare = ItemRarityID.Green;
+
+		// Other properties
 		Item.accessory = true;
+		Item.createTile = ModContent.TileType<WarbannerTile>(); // Not allowed to actually place it, this just tells tmod we want our tile to drop this item
 
 		base.SetDefaults();
 	}

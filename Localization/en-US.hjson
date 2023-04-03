@@ -4,6 +4,7 @@ Mods: {
 		Tiles: {
 			ChanceShrine.MapEntry: Chance Shrine
 			SacrificeShrine.MapEntry: Sacrifice Shrine
+			WarbannerTile.MapEntry: Warbanner
 		}
 
 		Buffs: {
