@@ -38,8 +38,6 @@ public class WorldGenSystem : ModSystem
 			int x = WorldGen.genRand.Next(40, Main.maxTilesX);
 			int y = WorldGen.genRand.Next(Main.UnderworldLayer, Main.maxTilesY - 60);
 
-			Mod.Logger.Info($"x: {x}, y: {y}");
-
 			List<Tile> tiles = TileUtils.FindAllSolidTiles(x, x + 20, y, y + 20);
 			if (tiles.Count > 300) {
 				Generator.GenerateMultistructureRandom("RiskOfRain/Structures/SacrificeShrineMultiStructure", new Point16(x, y), Mod);
