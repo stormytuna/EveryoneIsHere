@@ -1,11 +1,13 @@
-﻿using Terraria;
+﻿using System;
+using Microsoft.Xna.Framework;
+using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.Localization;
 
 namespace EveryoneIsHere.Helpers;
 
-public class GeneralUtils
+public static class GeneralUtils
 {
 	/// <summary>Converts an integer coin value to a string</summary>
 	/// <param name="coinValue">The coin value</param>
@@ -72,5 +74,15 @@ public class GeneralUtils
 	public static Item NewItemFromTile(IEntitySource source, int tileX, int tileY, int type) {
 		int newItemIndex = Item.NewItem(source, tileX * 16, tileY * 16, 16, 16, type);
 		return Main.item[newItemIndex];
+	}
+
+	/// <summary>
+	///     Ease-out interpolation between start and end
+	/// </summary>
+	public static float EaseOutInterpolation(float start, float end, float lerpAmount, int exponent) {
+		float flipped = 1 - lerpAmount;
+		float exp = MathF.Pow(flipped, exponent);
+		float reFlipped = 1 - exp;
+		return MathHelper.Lerp(start, end, reFlipped);
 	}
 }
