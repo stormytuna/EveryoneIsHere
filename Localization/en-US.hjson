@@ -12,5 +12,14 @@ Mods: {
 				Description: Mods.EveryoneIsHere.Buffs.LifeDebt.Description
 			}
 		}
+
+		Items: {
+			FocusCrystal: {
+				DisplayName: Focus Crystal
+				Tooltip: 20% increased damage to enemies that are close to you
+			}
+		}
+
+		Projectiles.FocusCrystalAuraProjectile.DisplayName: Focus Crystal Aura Projectile
 	}
 }
