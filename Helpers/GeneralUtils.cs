@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.DataStructures;
@@ -84,5 +86,21 @@ public static class GeneralUtils
 		float exp = MathF.Pow(flipped, exponent);
 		float reFlipped = 1 - exp;
 		return MathHelper.Lerp(start, end, reFlipped);
+	}
+
+	public static IEnumerable<Player> NearbyPlayers(Vector2 searchCenter, float searchRadius, bool careAboutLineOfSight, int team = 0, List<int> excludedPlayers = null) {
+		excludedPlayers ??= new List<int>();
+
+		foreach (Player player in Main.player.SkipLast(1)) {
+			bool isValid = player.active && !player.dead;
+			bool isInRange = player.WithinRange(searchCenter, searchRadius);
+			bool isInLineOfSight = !careAboutLineOfSight || Collision.CanHitLine(player.MountedCenter, 1, 1, searchCenter, 1, 1);
+			bool isSameTeam = team == 0 || player.team == team;
+			bool isExcluded = excludedPlayers.Contains(player.whoAmI);
+
+			if (isValid && isInRange && isInLineOfSight && isSameTeam && !isExcluded) {
+				yield return player;
+			}
+		}
 	}
 }
