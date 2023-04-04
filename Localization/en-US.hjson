@@ -11,6 +11,11 @@ Mods: {
 				DisplayName: Life Debt
 				Description: Who cares what i put here :D
 			}
+
+			BerserkersPauldronBuff: {
+				DisplayName: Berserk
+				Description: 25% increased damage
+			}
 		}
 
 		Items: {
@@ -22,6 +27,11 @@ Mods: {
 			OddlyShapedOpal: {
 				DisplayName: Oddly Shaped Opal
 				Tooltip: Evading damage for 10 seconds charges the Opal, causing the next damage you take to be halved
+			}
+
+			BerserkersPauldron: {
+				DisplayName: Berserker's Pauldron
+				Tooltip: Killing a few enemies in a short time grants 25% increased damage for 6 seconds
 			}
 		}
 
