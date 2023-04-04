@@ -9,7 +9,7 @@ Mods: {
 		Buffs: {
 			LifeDebt: {
 				DisplayName: Life Debt
-				Description: Mods.EveryoneIsHere.Buffs.LifeDebt.Description
+				Description: Who cares what i put here :D
 			}
 		}
 
@@ -18,6 +18,16 @@ Mods: {
 				DisplayName: Focus Crystal
 				Tooltip: 20% increased damage to enemies that are close to you
 			}
+
+			OddlyShapedOpal: {
+				DisplayName: Oddly Shaped Opal
+				Tooltip: Evading damage for 10 seconds charges the Opal, causing the next damage you take to be halved
+			}
+		}
+
+		Projectiles: {
+			OpalAuraInner.DisplayName: Opal Aura Inner
+			OpalAuraOuter.DisplayName: Opal Aura Outer
 		}
 	}
 }

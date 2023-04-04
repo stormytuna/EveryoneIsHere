@@ -103,4 +103,9 @@ public static class GeneralUtils
 			}
 		}
 	}
+
+	public static float GetBrightness(Vector2 worldPosition) {
+		Point tileCoordinates = worldPosition.ToTileCoordinates();
+		return Lighting.Brightness(tileCoordinates.X, tileCoordinates.Y);
+	}
 }

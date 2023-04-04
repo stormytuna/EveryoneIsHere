@@ -17,4 +17,9 @@ public static class Extensions
 		Rectangle intersection = Rectangle.Intersect(startRect, targetRect);
 		return rand.NextVector2FromRectangle(intersection);
 	}
+
+	/// <summary>
+	///     Converts a world position to screen coordinates
+	/// </summary>
+	public static Vector2 ToScreenCoordinates(this Vector2 worldPosition) => worldPosition - Main.screenPosition;
 }
