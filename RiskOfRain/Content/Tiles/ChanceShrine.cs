@@ -58,23 +58,15 @@ public class ChanceShrine : ModTile
 		DustType = DustID.Stone;
 
 		AddMapEntry(new Color(144, 148, 144), CreateMapEntryName());
-
-		base.SetStaticDefaults();
 	}
 
-	public override bool CanKillTile(int i, int j, ref bool blockDamaged) {
-		return !IsShrineActive(i, j);
-	}
+	public override bool CanKillTile(int i, int j, ref bool blockDamaged) => !IsShrineActive(i, j);
 
-	public override bool HasSmartInteract(int i, int j, SmartInteractScanSettings settings) {
-		return true;
-	}
+	public override bool HasSmartInteract(int i, int j, SmartInteractScanSettings settings) => true;
 
 	public override void KillMultiTile(int i, int j, int frameX, int frameY) {
 		Point16 origin = TileUtils.GetTileOrigin(i, j);
 		ModContent.GetInstance<ChanceShrine_TileEntity>().Kill(origin.X, origin.Y);
-
-		base.KillMultiTile(i, j, frameX, frameY);
 	}
 
 	public override void MouseOver(int i, int j) {
@@ -88,8 +80,6 @@ public class ChanceShrine : ModTile
 		player.cursorItemIconText = GeneralUtils.CoinValueToString(chanceShrineEntity.Price);
 		player.noThrow = 2;
 		player.cursorItemIconEnabled = true;
-
-		base.MouseOver(i, j);
 	}
 
 	public override bool RightClick(int i, int j) {
@@ -162,9 +152,7 @@ public class ChanceShrine_TileEntity : ModTileEntity
 	public int Price { get; set; } = 100000;
 	public int InteractionCooldown { get; set; }
 
-	public override bool IsTileValidForEntity(int x, int y) {
-		return Main.tile[x, y].HasTile && Main.tile[x, y].TileType == ModContent.TileType<ChanceShrine>();
-	}
+	public override bool IsTileValidForEntity(int x, int y) => Main.tile[x, y].HasTile && Main.tile[x, y].TileType == ModContent.TileType<ChanceShrine>();
 
 	public override int Hook_AfterPlacement(int i, int j, int type, int style, int direction, int alternate) {
 		TileObjectData tileData = TileObjectData.GetTileData(type, style, alternate);
@@ -182,8 +170,6 @@ public class ChanceShrine_TileEntity : ModTileEntity
 
 	public override void Update() {
 		InteractionCooldown--;
-
-		base.Update();
 	}
 
 	public override void OnNetPlace() {

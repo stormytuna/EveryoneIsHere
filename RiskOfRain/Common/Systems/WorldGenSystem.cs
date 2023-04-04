@@ -17,8 +17,6 @@ public class WorldGenSystem : ModSystem
 		if (lifeCrystalsIndex != -1) {
 			tasks.Insert(lifeCrystalsIndex + 1, new PassLegacy("Shrines", Shrines));
 		}
-
-		base.ModifyWorldGenTasks(tasks, ref totalWeight);
 	}
 
 	private void Shrines(GenerationProgress progress, GameConfiguration _) {

@@ -49,23 +49,15 @@ public class SacrificeShrine : ModTile
 		DustType = DustID.Stone;
 
 		AddMapEntry(new Color(144, 148, 144), CreateMapEntryName());
-
-		base.SetStaticDefaults();
 	}
 
-	public override bool CanKillTile(int i, int j, ref bool blockDamaged) {
-		return !IsShrineActive(i, j);
-	}
+	public override bool CanKillTile(int i, int j, ref bool blockDamaged) => !IsShrineActive(i, j);
 
-	public override bool HasSmartInteract(int i, int j, SmartInteractScanSettings settings) {
-		return true;
-	}
+	public override bool HasSmartInteract(int i, int j, SmartInteractScanSettings settings) => true;
 
 	public override void KillMultiTile(int i, int j, int frameX, int frameY) {
 		Point16 origin = TileUtils.GetTileOrigin(i, j);
 		ModContent.GetInstance<SacrificeShrine_TileEntity>().Kill(origin.X, origin.Y);
-
-		base.KillMultiTile(i, j, frameX, frameY);
 	}
 
 	public override void MouseOver(int i, int j) {
@@ -79,8 +71,6 @@ public class SacrificeShrine : ModTile
 		player.cursorItemIconText = $"50% [i:{ItemID.LifeCrystal}]";
 		player.noThrow = 2;
 		player.cursorItemIconEnabled = true;
-
-		base.MouseOver(i, j);
 	}
 
 	public override bool RightClick(int i, int j) {
@@ -115,9 +105,7 @@ public class SacrificeShrine_TileEntity : ModTileEntity
 {
 	public bool Active { get; set; } = true;
 
-	public override bool IsTileValidForEntity(int x, int y) {
-		return Main.tile[x, y].HasTile && Main.tile[x, y].TileType == ModContent.TileType<SacrificeShrine>();
-	}
+	public override bool IsTileValidForEntity(int x, int y) => Main.tile[x, y].HasTile && Main.tile[x, y].TileType == ModContent.TileType<SacrificeShrine>();
 
 	public override int Hook_AfterPlacement(int i, int j, int type, int style, int direction, int alternate) {
 		TileObjectData tileData = TileObjectData.GetTileData(type, style, alternate);
@@ -135,7 +123,5 @@ public class SacrificeShrine_TileEntity : ModTileEntity
 
 	public override void OnNetPlace() {
 		NetMessage.SendData(MessageID.TileEntitySharing, -1, -1, null, ID, Position.X, Position.Y);
-
-		base.OnNetPlace();
 	}
 }

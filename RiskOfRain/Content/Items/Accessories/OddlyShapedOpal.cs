@@ -27,15 +27,11 @@ public class OddlyShapedOpal : ModItem
 
 		// Other properties
 		Item.accessory = true;
-
-		base.SetDefaults();
 	}
 
 	public override void UpdateAccessory(Player player, bool hideVisual) {
 		player.GetModPlayer<OpalPlayer>().Opal = true;
 		player.GetModPlayer<OpalPlayer>().OpalVisuals = !hideVisual;
-
-		base.UpdateAccessory(player, hideVisual);
 	}
 }
 
@@ -45,8 +41,6 @@ public class OpalDropRule : GlobalNPC
 
 	public override void ModifyNPCLoot(NPC npc, NPCLoot npcLoot) {
 		npcLoot.Add(ItemDropRule.Common(ModContent.ItemType<OddlyShapedOpal>()));
-
-		base.ModifyNPCLoot(npc, npcLoot);
 	}
 }
 
@@ -174,7 +168,7 @@ public class OpalPlayerDrawLayer : PlayerDrawLayer
 
 		// Draw actual necklace
 		Texture2D necklaceTexture = OpalNecklace.Value.Value;
-		Vector2 drawPosition = (drawInfo.Center - Main.screenPosition).Floor();
+		Vector2 drawPosition = drawInfo.Center.ToScreenCoordinates().Floor();
 		Rectangle sourceRect = drawPlayer.bodyFrame;
 		Color drawColor = drawInfo.colorArmorBody;
 		float rotation = drawPlayer.bodyRotation;
@@ -204,11 +198,14 @@ public class OpalDust : PlayerParentedDust
 	public override string Texture => null;
 
 	public override void OnSpawn(Dust dust) {
-		dust.noGravity = true;
+		dust.alpha = 160;
 		dust.frame = DustHelpers.GetDustFrameFromType(62);
+		dust.noGravity = true;
 	}
 
 	public override bool Update(Dust dust) {
+		base.Update(dust);
+
 		dust.rotation += 0.1f;
 		dust.scale -= 0.01f;
 		dust.position += dust.velocity;
@@ -217,7 +214,7 @@ public class OpalDust : PlayerParentedDust
 			dust.active = false;
 		}
 
-		return base.Update(dust);
+		return false;
 	}
 }
 

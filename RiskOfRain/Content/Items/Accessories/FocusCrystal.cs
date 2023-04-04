@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using EveryoneIsHere.Helpers;
+using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
@@ -11,8 +12,6 @@ public class FocusCrystal : ModItem
 {
 	public override void SetStaticDefaults() {
 		Item.ResearchUnlockCount = 1;
-
-		base.SetStaticDefaults();
 	}
 
 	public override void SetDefaults() {
@@ -24,23 +23,17 @@ public class FocusCrystal : ModItem
 
 		// Other properties
 		Item.accessory = true;
-
-		base.SetDefaults();
 	}
 
 	public override void UpdateAccessory(Player player, bool hideVisual) {
 		player.GetModPlayer<FocusCrystalPlayer>().FocusCrystal = true;
 		player.GetModPlayer<FocusCrystalPlayer>().FocusCrystalVisuals = !hideVisual;
-
-		base.UpdateAccessory(player, hideVisual);
 	}
 }
 
 public class FocusCrystalGlobalProjectile : GlobalProjectile
 {
-	public override bool AppliesToEntity(Projectile entity, bool lateInstantiation) {
-		return entity.type == ProjectileID.Geode;
-	}
+	public override bool AppliesToEntity(Projectile entity, bool lateInstantiation) => entity.type == ProjectileID.Geode;
 
 	public override void Kill(Projectile projectile, int timeLeft) {
 		if (!Main.rand.NextBool(10)) {
@@ -51,8 +44,6 @@ public class FocusCrystalGlobalProjectile : GlobalProjectile
 		if (Main.netMode == NetmodeID.MultiplayerClient) {
 			NetMessage.SendData(MessageID.SyncItem, -1, -1, null, itemIndex, 1f);
 		}
-
-		base.Kill(projectile, timeLeft);
 	}
 }
 
@@ -66,8 +57,6 @@ public class FocusCrystalPlayer : ModPlayer
 	public override void ResetEffects() {
 		FocusCrystal = false;
 		FocusCrystalVisuals = false;
-
-		base.ResetEffects();
 	}
 
 	private void TryFocusCrystalDamageIncrease(NPC target, ref NPC.HitModifiers modifiers) {
@@ -90,8 +79,6 @@ public class FocusCrystalPlayer : ModPlayer
 		if (FocusCrystal) {
 			TryFocusCrystalDamageIncrease(target, ref modifiers);
 		}
-
-		base.ModifyHitNPC(target, ref modifiers);
 	}
 
 	public override void DrawEffects(PlayerDrawSet drawInfo, ref float r, ref float g, ref float b, ref float a, ref bool fullBright) {
@@ -122,38 +109,27 @@ public class FocusCrystalPlayer : ModPlayer
 		}
 
 		// TODO: Dust on waist sprite
-
-		base.DrawEffects(drawInfo, ref r, ref g, ref b, ref a, ref fullBright);
 	}
 }
 
-public class FocusCrystalAuraDust : ModDust
+public class FocusCrystalAuraDust : PlayerParentedDust
 {
 	public override string Texture => null;
 
 	public override void OnSpawn(Dust dust) {
+		dust.frame = DustHelpers.GetDustFrameFromType(60);
 		dust.noGravity = true;
-
-		int vanillaDustId = 60;
-		int frameX = vanillaDustId * 10 % 1000;
-		int frameY = vanillaDustId * 10 / 1000 * 30 + Main.rand.Next(3) * 10; // Wacky stuff from EM, basically just gives our dust a vanilla texture
-		dust.frame = new Rectangle(frameX, frameY, 8, 8);
-
-		base.OnSpawn(dust);
 	}
 
 	public override bool Update(Dust dust) {
+		base.Update(dust);
+
 		dust.rotation += 0.1f;
 		dust.scale -= 0.03f;
 		dust.position += dust.velocity;
 
 		if (dust.scale < 0.25f) {
 			dust.active = false;
-		}
-
-		if (dust.customData is int owner) {
-			Player player = Main.player[owner];
-			dust.position += player.position - player.oldPosition;
 		}
 
 		return false;

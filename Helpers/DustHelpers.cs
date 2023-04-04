@@ -32,6 +32,6 @@ public abstract class PlayerParentedDust : ModDust
 		Player player = Main.player[owner];
 		dust.position += player.position - player.oldPosition;
 
-		return false;
+		return base.Update(dust);
 	}
 }
