@@ -15,8 +15,8 @@ public class BrilliantBehemoth : ModItem
 
 	public override void SetDefaults() {
 		// Base properties
-		Item.width = 54;
-		Item.height = 52;
+		Item.width = 50;
+		Item.height = 50;
 		Item.value = Item.buyPrice(gold: 22);
 		Item.rare = ItemRarityID.Lime;
 
