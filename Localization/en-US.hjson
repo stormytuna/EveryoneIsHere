@@ -43,6 +43,11 @@ Mods: {
 				DisplayName: Brilliant Behemoth
 				Tooltip: Hitting an enemy damages surrounding enemies with an explosion
 			}
+
+			LaserScope: {
+				DisplayName: Laser Scope
+				Tooltip: Critical strikes deal 50% more damage
+			}
 		}
 
 		Projectiles: {
