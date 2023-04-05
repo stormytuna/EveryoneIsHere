@@ -38,6 +38,11 @@ Mods: {
 				DisplayName: AtG Missile Mk. 1
 				Tooltip: Your hits have an 8% chance to fire a homing missile at nearby enemies
 			}
+
+			BrilliantBehemoth: {
+				DisplayName: Brilliant Behemoth
+				Tooltip: Hitting an enemy damages surrounding enemies with an explosion
+			}
 		}
 
 		Projectiles: {
@@ -45,5 +50,7 @@ Mods: {
 			OpalAuraOuter.DisplayName: Opal Aura Outer
 			ATGMissile.DisplayName: AtG Missile
 		}
+
+		Conditions.DownedGolem: ""
 	}
 }
