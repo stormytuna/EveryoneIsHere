@@ -14,8 +14,8 @@ public class BerserkersPauldron : ModItem
 
 	public override void SetDefaults() {
 		// Base properties
-		Item.width = 22;
-		Item.height = 22;
+		Item.width = 26;
+		Item.height = 28;
 		Item.value = Item.sellPrice(gold: 2);
 		Item.rare = ItemRarityID.Pink;
 
