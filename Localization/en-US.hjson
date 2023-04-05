@@ -48,6 +48,18 @@ Mods: {
 				DisplayName: Laser Scope
 				Tooltip: Critical strikes deal 50% more damage
 			}
+
+			AdornedGlove: {
+				DisplayName: Adorned Glove
+				Tooltip:
+					'''
+					Increases melee knockback
+					12% increased melee speed
+					Enables autoswing for melee weapons
+					Increased the size of melee weapons
+					20% increased damage to enemies that are close to you
+					'''
+			}
 		}
 
 		Projectiles: {
