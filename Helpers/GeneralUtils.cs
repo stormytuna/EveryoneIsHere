@@ -104,6 +104,9 @@ public static class GeneralUtils
 		}
 	}
 
+	/// <summary>
+	///     This just wraps Lighting.Brightness to make it a bit more usable, requiring a world position instead of tile i and j
+	/// </summary>
 	public static float GetBrightness(Vector2 worldPosition) {
 		Point tileCoordinates = worldPosition.ToTileCoordinates();
 		return Lighting.Brightness(tileCoordinates.X, tileCoordinates.Y);

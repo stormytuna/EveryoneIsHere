@@ -22,4 +22,19 @@ public static class Extensions
 	///     Converts a world position to screen coordinates
 	/// </summary>
 	public static Vector2 ToScreenCoordinates(this Vector2 worldPosition) => worldPosition - Main.screenPosition;
+
+	public static Vector2 ClampLength(this Vector2 vector, float minLength, float maxLength) {
+		float minLengthSquared = minLength * minLength;
+		float maxLengthSquared = maxLength * maxLength;
+
+		if (vector.LengthSquared() < minLengthSquared) {
+			return vector.SafeNormalize(Vector2.Zero) * minLength;
+		}
+
+		if (vector.LengthSquared() > maxLengthSquared) {
+			return vector.SafeNormalize(Vector2.Zero) * maxLength;
+		}
+
+		return vector;
+	}
 }

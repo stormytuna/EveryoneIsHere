@@ -33,11 +33,17 @@ Mods: {
 				DisplayName: Berserker's Pauldron
 				Tooltip: Killing a few enemies in a short time grants 25% increased damage for 6 seconds
 			}
+
+			ATGMissileMk1: {
+				DisplayName: AtG Missile Mk. 1
+				Tooltip: Your hits have an 8% chance to fire a homing missile at nearby enemies
+			}
 		}
 
 		Projectiles: {
 			OpalAuraInner.DisplayName: Opal Aura Inner
 			OpalAuraOuter.DisplayName: Opal Aura Outer
+			ATGMissile.DisplayName: AtG Missile
 		}
 	}
 }
