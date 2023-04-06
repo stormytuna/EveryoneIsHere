@@ -30,9 +30,7 @@ public class BerserkersPauldron : ModItem
 
 public class BerserkersPauldronDropRule : GlobalNPC
 {
-	private static readonly int[] AllowedNpcTypes = {
-		NPCID.GoblinPeon, NPCID.GoblinSorcerer, NPCID.GoblinThief, NPCID.GoblinWarrior, NPCID.GoblinArcher, NPCID.GoblinSummoner
-	};
+	private static readonly int[] AllowedNpcTypes = { NPCID.GoblinPeon, NPCID.GoblinSorcerer, NPCID.GoblinThief, NPCID.GoblinWarrior, NPCID.GoblinArcher, NPCID.GoblinSummoner };
 
 	public override bool AppliesToEntity(NPC entity, bool lateInstantiation) => AllowedNpcTypes.Contains(entity.type);
 

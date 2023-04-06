@@ -26,9 +26,8 @@ public readonly struct SyncChanceShrineTileEntityPacket : IEasyPacket<SyncChance
 		writer.Write(Price);
 	}
 
-	SyncChanceShrineTileEntityPacket IEasyPacket<SyncChanceShrineTileEntityPacket>.Deserialise(BinaryReader reader, in SenderInfo sender) {
-		return new SyncChanceShrineTileEntityPacket(reader.ReadInt32(), reader.ReadInt32(), reader.ReadBoolean(), reader.ReadInt32());
-	}
+	SyncChanceShrineTileEntityPacket IEasyPacket<SyncChanceShrineTileEntityPacket>.Deserialise(BinaryReader reader, in SenderInfo sender) =>
+		new SyncChanceShrineTileEntityPacket(reader.ReadInt32(), reader.ReadInt32(), reader.ReadBoolean(), reader.ReadInt32());
 
 	public void Receive(in SyncChanceShrineTileEntityPacket packet, in SenderInfo sender, ref bool handled) {
 		if (!TileUtils.TryGetTileEntityAs(packet.PositionX, packet.PositionY, out ChanceShrine_TileEntity chanceShrineEntity)) {
