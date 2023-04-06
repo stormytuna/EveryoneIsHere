@@ -110,8 +110,6 @@ public class OpalPlayer : ModPlayer
 		if (doOpalDamageReduction) {
 			modifiers.IncomingDamageMultiplier *= 0.5f;
 		}
-
-		// TODO: Fancy dust effect, being absorbed by necklace
 	}
 
 	public override void ModifyHitByProjectile(Projectile proj, ref Player.HurtModifiers modifiers) {
@@ -164,25 +162,13 @@ public class OpalPlayerDrawLayer : PlayerDrawLayer
 
 	protected override void Draw(ref PlayerDrawSet drawInfo) {
 		Player drawPlayer = drawInfo.drawPlayer;
-		OpalPlayer modPlayer = drawPlayer.GetModPlayer<OpalPlayer>();
 
-		// Draw actual necklace
-		Texture2D necklaceTexture = OpalNecklace.Value.Value;
 		Vector2 drawPosition = drawInfo.Center.ToScreenCoordinates().Floor();
 		Rectangle sourceRect = drawPlayer.bodyFrame;
-		Color drawColor = drawInfo.colorArmorBody;
-		float rotation = drawPlayer.bodyRotation;
 		Vector2 origin = drawInfo.bodyVect;
-		float scale = 1f;
+		Color drawColor = drawInfo.colorArmorBody;
 		SpriteEffects effects = drawInfo.playerEffect;
 
-		drawInfo.DrawDataCache.Add(new DrawData(necklaceTexture, drawPosition, sourceRect, drawColor, rotation, origin, scale, effects));
-
-		if (modPlayer.OpalCounter > 0) {
-			return;
-		}
-
-		// Draw opal shine if it's currently active
 		Texture2D shineTexture = OpalShine.Value.Value;
 		float shineScale = MathF.Sin(Main.GlobalTimeWrappedHourly * MathHelper.TwoPi / 2f) * 0.3f + 1.1f;
 		Color shineColor = drawColor * 0.1f * shineScale;
@@ -225,9 +211,8 @@ public class OpalAuraOuter : AuraProjectile
 	public override bool ShouldKillProjectile() => !Owner.GetModPlayer<OpalPlayer>().OpalShownAndActive;
 
 	public override void SafeSetDefaults() {
-		// TODO: Make this a nicer colour
-		AuraDrawColor = Color.MediumPurple;
-		AuraDrawColorMultiplier = 0.4f;
+		AuraDrawColor = new Color(185, 21, 235);
+		AuraDrawColorMultiplier = 0.8f;
 	}
 }
 
@@ -238,7 +223,7 @@ public class OpalAuraInner : AuraProjectile
 	public override bool ShouldKillProjectile() => !Owner.GetModPlayer<OpalPlayer>().OpalShownAndActive;
 
 	public override void SafeSetDefaults() {
-		AuraDrawColor = Color.Purple;
-		AuraDrawColorMultiplier = 0.5f;
+		AuraDrawColor = new Color(131, 32, 161);
+		AuraDrawColorMultiplier = 0.8f;
 	}
 }
