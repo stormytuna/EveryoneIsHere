@@ -2,6 +2,7 @@
 using EveryoneIsHere.Helpers;
 using EveryoneIsHere.RiskOfRain.Common.EasyPackets;
 using EveryoneIsHere.RiskOfRain.Content.Buffs;
+using EveryoneIsHere.RiskOfRain.Content.Items.Accessories;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
@@ -16,10 +17,7 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles;
 
 public class SacrificeShrine : ModTile
 {
-	private readonly int[] SacrificeShrineItems = {
-		// TODO: Add modded items here
-		ItemID.LavaCharm, ItemID.ObsidianRose, ItemID.MagmaStone
-	};
+	private readonly int[] SacrificeShrineItems = { ModContent.ItemType<OddlyShapedOpal>(), ItemID.LavaCharm, ItemID.ObsidianRose, ItemID.MagmaStone };
 
 	private static bool IsShrineActive(int i, int j) {
 		if (TileUtils.TryGetTileEntityAs(i, j, out SacrificeShrine_TileEntity chanceShrineEntity)) {
