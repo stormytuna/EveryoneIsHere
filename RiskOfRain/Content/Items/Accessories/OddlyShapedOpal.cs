@@ -225,6 +225,7 @@ public class OpalAuraOuter : AuraProjectile
 	public override bool ShouldKillProjectile() => !Owner.GetModPlayer<OpalPlayer>().OpalShownAndActive;
 
 	public override void SafeSetDefaults() {
+		// TODO: Make this a nicer colour
 		AuraDrawColor = Color.MediumPurple;
 		AuraDrawColorMultiplier = 0.4f;
 	}

@@ -64,7 +64,7 @@ public class ATGPlayer : ModPlayer
 	}
 
 	private void TryFireATGMissile(NPC target, int damage) {
-		if (ATG && Main.rand.NextFloat() > ATGMissileChance) {
+		if (!ATG || Main.rand.NextFloat() > ATGMissileChance) {
 			return;
 		}
 

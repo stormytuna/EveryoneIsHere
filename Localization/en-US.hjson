@@ -66,8 +66,18 @@ Mods: {
 			OpalAuraInner.DisplayName: Opal Aura Inner
 			OpalAuraOuter.DisplayName: Opal Aura Outer
 			ATGMissile.DisplayName: AtG Missile
+			AlphaConstructProjectile.DisplayName: Construct Beam
+			AlphaConstructAuraInner.DisplayName: Alpha Construct Aura Inner
+			AlphaConstructAuraOuter.DisplayName: Alpha Construct Aura Outer
 		}
 
 		Conditions.DownedGolem: ""
+
+		NPCs: {
+			AlphaConstruct: {
+				DisplayName: Alpha Construct
+				BestiaryFlavorText: An immobile pyramid shaped turret, capable of projecting a yellow barrier when it needs to, but foolish enough to lower its guard when approached.
+			}
+		}
 	}
 }
