@@ -68,9 +68,7 @@ public class FocusCrystalPlayer : ModPlayer
 
 		int numDust = Main.rand.Next(3, 7);
 		for (int i = 0; i < numDust; i++) {
-			Vector2 dustPositionOffset = Main.rand.NextVector2Circular(5f, 5f);
-			Vector2 dustPosition = target.Center + dustPositionOffset;
-			Dust newDust = Dust.NewDustPerfect(dustPosition, ModContent.DustType<FocusCrystalAuraDust>());
+			Dust newDust = Dust.NewDustDirect(target.position, target.width, target.height, ModContent.DustType<FocusCrystalAuraDust>());
 			newDust.velocity = Main.rand.NextVector2Circular(5f, 5f);
 		}
 	}
@@ -107,8 +105,6 @@ public class FocusCrystalPlayer : ModPlayer
 
 			drawInfo.DustCache.Add(newDust.dustIndex);
 		}
-
-		// TODO: Dust on waist sprite
 	}
 }
 
