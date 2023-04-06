@@ -1,6 +1,7 @@
 ﻿using EasyPacketsLib;
 using EveryoneIsHere.Helpers;
 using EveryoneIsHere.RiskOfRain.Common.EasyPackets;
+using EveryoneIsHere.RiskOfRain.Content.Items.Accessories;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
@@ -15,12 +16,7 @@ namespace EveryoneIsHere.RiskOfRain.Content.Tiles;
 
 public class ChanceShrine : ModTile
 {
-	private readonly int[] ChanceShrineItems = {
-		// TODO: Add modded items here
-		ItemID.CloudinaBottle,
-		ItemID.BandofRegeneration,
-		ItemID.HermesBoots
-	};
+	private readonly int[] ChanceShrineItems = { ModContent.ItemType<FocusCrystal>(), ItemID.CloudinaBottle, ItemID.BandofRegeneration, ItemID.HermesBoots };
 
 	private static bool IsShrineActive(int i, int j) {
 		if (TileUtils.TryGetTileEntityAs(i, j, out ChanceShrine_TileEntity chanceShrineEntity)) {
