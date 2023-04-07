@@ -78,6 +78,8 @@ Mods: {
 				DisplayName: Alpha Construct
 				BestiaryFlavorText: An immobile pyramid shaped turret, capable of projecting a yellow barrier when it needs to, but foolish enough to lower its guard when approached.
 			}
+
+			XiConstruct.DisplayName: Xi Construct
 		}
 	}
 }
