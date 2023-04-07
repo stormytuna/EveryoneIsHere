@@ -19,13 +19,7 @@ public class SacrificeShrine : ModTile
 {
 	private readonly int[] SacrificeShrineItems = { ModContent.ItemType<OddlyShapedOpal>(), ItemID.LavaCharm, ItemID.ObsidianRose, ItemID.MagmaStone };
 
-	private static bool IsShrineActive(int i, int j) {
-		if (TileUtils.TryGetTileEntityAs(i, j, out SacrificeShrine_TileEntity chanceShrineEntity)) {
-			return chanceShrineEntity.Active;
-		}
-
-		return false;
-	}
+	private static bool IsShrineActive(int i, int j) => TileUtils.TryGetTileEntityAs(i, j, out SacrificeShrine_TileEntity chanceShrineEntity) && chanceShrineEntity.Active;
 
 	public override void SetStaticDefaults() {
 		Main.tileShine2[Type] = true;
