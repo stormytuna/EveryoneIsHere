@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using EveryoneIsHere.RiskOfRain.Content.NPCs.AlphaConstruct;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using Terraria;
@@ -12,7 +13,18 @@ namespace EveryoneIsHere.RiskOfRain.Content.NPCs.XiConstruct;
 public class XiConstruct : ModNPC
 {
 	private const float MaxTargetRange = 200f * 16f;
-	private const float RotationStrength = 0.08f;
+
+	private const float Barrage_TimeToStartShooting = 50f;
+	private const float Barrage_TimeToSweep = 30f;
+	private const float Barrage_TimeBetweenShots = 10f;
+	private const float Barrage_TimeToShootFor = 50f;
+	private float Barrage_TotalActiveTime => Barrage_TimeToStartShooting + Barrage_TimeToShootFor;
+	private const float Barrage_SweepAngle = 0.261799f;
+
+	private float RotationStrength => State switch {
+		AIState.Barrage => 0.15f,
+		_ => 0.08f
+	};
 
 	public static Asset<Texture2D> PanelTexture => ModContent.Request<Texture2D>("EveryoneIsHere/RiskOfRain/Content/NPCs/XiConstruct/XiConstruct_Panel");
 
@@ -25,8 +37,13 @@ public class XiConstruct : ModNPC
 
 	private AIState State {
 		get => (AIState)NPC.ai[0];
-		set => NPC.ai[0] = (float)value;
+		set {
+			NPC.ai[0] = (float)value;
+			Timer = 0f;
+		}
 	}
+
+	private ref float Timer => ref NPC.ai[1];
 
 	public override void SetStaticDefaults() {
 		NPCID.Sets.DontDoHardmodeScaling[Type] = true;
@@ -84,6 +101,18 @@ public class XiConstruct : ModNPC
 		return false;
 	}
 
+	private void FaceTarget(Vector2 targetPos) {
+		float targetRotation = NPC.AngleTo(targetPos);
+		float oldRotation = NPC.rotation;
+		NPC.rotation = NPC.rotation.AngleLerp(targetRotation, RotationStrength);
+		float rotateChildrenBy = NPC.rotation - oldRotation;
+
+		frontLeftPanel.RotateAroundParent(rotateChildrenBy);
+		frontRightPanel.RotateAroundParent(rotateChildrenBy);
+		backLeftPanel.RotateAroundParent(rotateChildrenBy);
+		backRightPanel.RotateAroundParent(rotateChildrenBy);
+	}
+
 	private void AI_NoTarget() {
 		Main.NewText("No Target!");
 
@@ -104,16 +133,58 @@ public class XiConstruct : ModNPC
 			return;
 		}
 
-		float targetRotation = NPC.AngleTo(Target.MountedCenter);
-		float oldRotation = NPC.rotation;
-		NPC.rotation = NPC.rotation.AngleLerp(targetRotation, RotationStrength);
-		float rotateChildrenBy = NPC.rotation - oldRotation;
-		frontLeftPanel.RotateAroundParent(rotateChildrenBy);
-		frontRightPanel.RotateAroundParent(rotateChildrenBy);
-		backLeftPanel.RotateAroundParent(rotateChildrenBy);
-		backRightPanel.RotateAroundParent(rotateChildrenBy);
+		FaceTarget(Target.MountedCenter);
 
-		Dust.QuickDustLine(NPC.Center, NPC.Center + NPC.rotation.ToRotationVector2() * 100f, 10f, Color.White);
+		Timer++;
+		if (Timer >= 180f) {
+			State = AIState.Barrage;
+		}
+
+		frontLeftPanel.ReturnToIdle();
+		frontRightPanel.ReturnToIdle();
+		backLeftPanel.ReturnToIdle();
+		backRightPanel.ReturnToIdle();
+
+		//Dust.QuickDustLine(NPC.Center, NPC.Center + NPC.rotation.ToRotationVector2() * 100f, 10f, Color.White);
+	}
+
+	private void AI_Barrage() {
+		Main.NewText("Barrage!");
+
+		if (!ValidateTarget()) {
+			return;
+		}
+
+		float rotation = 0f;
+		if (Timer >= Barrage_TimeToSweep) {
+			float lerpAmount = (Timer - Barrage_TimeToSweep) / (Barrage_TotalActiveTime - Barrage_TimeToSweep);
+			rotation = MathHelper.Lerp(Barrage_SweepAngle, -Barrage_SweepAngle, lerpAmount);
+		}
+
+		Vector2 toTarget = Target.MountedCenter - NPC.Center;
+		Vector2 target = NPC.Center + toTarget.RotatedBy(rotation);
+		FaceTarget(target);
+
+		if (Timer >= Barrage_TimeToStartShooting && Timer % Barrage_TimeBetweenShots == 0f) {
+			Vector2 velocity = NPC.DirectionTo(target) * 10f;
+			Projectile.NewProjectile(NPC.GetSource_FromAI(), NPC.Center, velocity, ModContent.ProjectileType<AlphaConstructProjectile>(), 10, 3f, Main.myPlayer);
+			frontLeftPanel.AddRecoil(velocity * -1, 0f);
+			frontRightPanel.AddRecoil(velocity * -1, 0f);
+			backLeftPanel.AddRecoil(velocity * -1, 0f);
+			backRightPanel.AddRecoil(velocity * -1, 0f);
+		}
+
+		if (Timer >= Barrage_TotalActiveTime) {
+			State = AIState.Idle;
+		}
+
+		frontLeftPanel.SetNextAnimationTarget(new Vector2(20f, -20f), -0.2f);
+		frontRightPanel.SetNextAnimationTarget(new Vector2(20f, 20f), 0.2f);
+		backLeftPanel.SetNextAnimationTarget(new Vector2(-10f, -16f), -0.5f);
+		backRightPanel.SetNextAnimationTarget(new Vector2(-10f, 16f), 0.5f);
+
+		Dust.QuickDust(target, Color.Red);
+		Timer++;
 	}
 
 	public override void AI() {
@@ -126,23 +197,10 @@ public class XiConstruct : ModNPC
 			case AIState.Idle:
 				AI_Idle();
 				break;
+			case AIState.Barrage:
+				AI_Barrage();
+				break;
 		}
-
-		if (NPC.localAI[0] % 600 == 0) {
-			frontLeftPanel.SetNextAnimationTarget(new Vector2(20f, -20f), -0.2f);
-			frontRightPanel.SetNextAnimationTarget(new Vector2(20f, 20f), 0.2f);
-			backLeftPanel.SetNextAnimationTarget(new Vector2(-10f, -16f), -0.5f);
-			backRightPanel.SetNextAnimationTarget(new Vector2(-10f, 16f), 0.5f);
-		}
-
-		if (NPC.localAI[0] % 600 == 300) {
-			frontLeftPanel.ReturnToIdle();
-			frontRightPanel.ReturnToIdle();
-			backLeftPanel.ReturnToIdle();
-			backRightPanel.ReturnToIdle();
-		}
-
-		NPC.localAI[0]++;
 
 		backLeftPanel.Animate();
 		backRightPanel.Animate();
@@ -197,6 +255,11 @@ public class XiConstruct : ModNPC
 			nextRotationOffset = nextRotation;
 		}
 
+		public void AddRecoil(Vector2 velocity, float rotation) {
+			curPositionOffset += velocity;
+			curRotationOffset += rotation;
+		}
+
 		public void ReturnToIdle() => SetNextAnimationTarget(Vector2.Zero, 0f);
 
 		public void RotateAroundParent(float amount) {
@@ -224,7 +287,6 @@ public class XiConstruct : ModNPC
 	{
 		NoTarget,
 		Idle,
-		ResummonAlphaConstruct,
 		CreateBarrier,
 		LaserCannon,
 		LaserBurst,
