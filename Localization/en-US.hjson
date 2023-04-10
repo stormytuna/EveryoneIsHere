@@ -69,6 +69,7 @@ Mods: {
 			AlphaConstructProjectile.DisplayName: Construct Beam
 			AlphaConstructAuraInner.DisplayName: Alpha Construct Aura Inner
 			AlphaConstructAuraOuter.DisplayName: Alpha Construct Aura Outer
+			XiConstructLaserBurst.DisplayName: Xi Construct Laser Burst
 		}
 
 		Conditions.DownedGolem: ""

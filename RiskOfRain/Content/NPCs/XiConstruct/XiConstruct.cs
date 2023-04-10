@@ -1,4 +1,5 @@
 ﻿using EveryoneIsHere.RiskOfRain.Content.NPCs.AlphaConstruct;
+using EveryoneIsHere.RiskOfRain.Content.Projectiles;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
@@ -21,6 +22,9 @@ public class XiConstruct : ModNPC
 	private const int Barrage_NumBarrages = 4;
 	private const int Barrage_TimeBetweenBarrages = 30;
 	private const float Barrage_SweepAngle = 0.261799f; // 15 degrees
+
+	private const int LaserBurst_StartupTime = 50;
+	private const int LaserBurst_TargetChaseCutoff = 30;
 
 	private float Barrage_TotalActiveTimeForOneBarrage => Barrage_NumShots * Barrage_TimeBetweenShots;
 
@@ -51,6 +55,11 @@ public class XiConstruct : ModNPC
 	private ref float Barrage_BarrageTimer => ref NPC.ai[2];
 
 	private ref float Barrage_BarrageCounter => ref NPC.ai[3];
+
+	private Projectile LaserBarrage_Laser {
+		get => Main.projectile[(int)NPC.ai[2]];
+		set => NPC.ai[2] = value.whoAmI;
+	}
 
 	public override void SetStaticDefaults() {
 		NPCID.Sets.DontDoHardmodeScaling[Type] = true;
@@ -144,7 +153,7 @@ public class XiConstruct : ModNPC
 
 		Timer++;
 		if (Timer >= 180f) {
-			State = AIState.Barrage;
+			State = AIState.LaserBurst;
 		}
 
 		frontLeftPanel.ReturnToIdle();
@@ -216,6 +225,37 @@ public class XiConstruct : ModNPC
 		Dust.QuickDust(target, Color.Red);
 	}
 
+	private void AI_LaserBurst() {
+		Main.NewText("Laser Burst!");
+
+		if (!ValidateTarget()) {
+			return;
+		}
+
+		if (Timer < LaserBurst_TargetChaseCutoff) {
+			FaceTarget(Target.MountedCenter);
+		}
+
+		if (Timer == LaserBurst_StartupTime) {
+			LaserBarrage_Laser = Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<XiConstructLaserBurst>(), 10, 2f, Main.myPlayer,
+				NPC.whoAmI);
+			LaserBarrage_Laser.rotation = NPC.rotation;
+		}
+
+		if (Timer > 100f) {
+			LaserBarrage_Laser.Kill();
+			State = AIState.Idle;
+			Timer = 0f;
+		}
+
+		frontLeftPanel.SetNextAnimationTarget(new Vector2(10f, -10f), 0f);
+		frontRightPanel.SetNextAnimationTarget(new Vector2(10f, 10f), 0f);
+		backLeftPanel.SetNextAnimationTarget(new Vector2(-10f, -10f), 0f);
+		backRightPanel.SetNextAnimationTarget(new Vector2(-10f, 10f), 0f);
+
+		Timer++;
+	}
+
 	public override void AI() {
 		TryInitialisePanels();
 
@@ -228,6 +268,9 @@ public class XiConstruct : ModNPC
 				break;
 			case AIState.Barrage:
 				AI_Barrage();
+				break;
+			case AIState.LaserBurst:
+				AI_LaserBurst();
 				break;
 		}
 
@@ -262,7 +305,7 @@ public class XiConstruct : ModNPC
 		private Vector2 curPositionOffset;
 		private Vector2 nextPositionOffset;
 
-		public float curRotationOffset;
+		private float curRotationOffset;
 		private float nextRotationOffset;
 
 		private float rotationAroundParent;
