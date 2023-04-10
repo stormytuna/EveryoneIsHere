@@ -14,19 +14,22 @@ public class XiConstruct : ModNPC
 {
 	private const float MaxTargetRange = 200f * 16f;
 
-	private const float Barrage_TimeToStartShooting = 50f;
-	private const float Barrage_TimeToSweep = 30f;
-	private const float Barrage_TimeBetweenShots = 10f;
-	private const float Barrage_TimeToShootFor = 50f;
-	private float Barrage_TotalActiveTime => Barrage_TimeToStartShooting + Barrage_TimeToShootFor;
-	private const float Barrage_SweepAngle = 0.261799f;
+	private const int Barrage_StartupTime = 50;
+	private const int Barrage_StartupForSweep = Barrage_StartupTime - 20;
+	private const int Barrage_NumShots = 8;
+	private const int Barrage_TimeBetweenShots = 10;
+	private const int Barrage_NumBarrages = 4;
+	private const int Barrage_TimeBetweenBarrages = 30;
+	private const float Barrage_SweepAngle = 0.261799f; // 15 degrees
+
+	private float Barrage_TotalActiveTimeForOneBarrage => Barrage_NumShots * Barrage_TimeBetweenShots;
 
 	private float RotationStrength => State switch {
 		AIState.Barrage => 0.15f,
 		_ => 0.08f
 	};
 
-	public static Asset<Texture2D> PanelTexture => ModContent.Request<Texture2D>("EveryoneIsHere/RiskOfRain/Content/NPCs/XiConstruct/XiConstruct_Panel");
+	private static Asset<Texture2D> PanelTexture => ModContent.Request<Texture2D>("EveryoneIsHere/RiskOfRain/Content/NPCs/XiConstruct/XiConstruct_Panel");
 
 	private XiConstructPanel backLeftPanel;
 	private XiConstructPanel backRightPanel;
@@ -44,6 +47,10 @@ public class XiConstruct : ModNPC
 	}
 
 	private ref float Timer => ref NPC.ai[1];
+
+	private ref float Barrage_BarrageTimer => ref NPC.ai[2];
+
+	private ref float Barrage_BarrageCounter => ref NPC.ai[3];
 
 	public override void SetStaticDefaults() {
 		NPCID.Sets.DontDoHardmodeScaling[Type] = true;
@@ -155,36 +162,58 @@ public class XiConstruct : ModNPC
 			return;
 		}
 
+		if (Timer == 0f) {
+			Barrage_BarrageTimer = 0f;
+			Barrage_BarrageCounter = 0f;
+		}
+
+		// Sets our rotation target, this funky stuff controls the rotational sweep across our target while firing
 		float rotation = 0f;
-		if (Timer >= Barrage_TimeToSweep) {
-			float lerpAmount = (Timer - Barrage_TimeToSweep) / (Barrage_TotalActiveTime - Barrage_TimeToSweep);
-			rotation = MathHelper.Lerp(Barrage_SweepAngle, -Barrage_SweepAngle, lerpAmount);
+		if (Barrage_BarrageTimer > Barrage_StartupForSweep) {
+			bool isSweepFlipped = Barrage_BarrageCounter % 2 == 0;
+			float sweepStartAngle = isSweepFlipped ? Barrage_SweepAngle : -Barrage_SweepAngle;
+			float sweepEndAngle = isSweepFlipped ? -Barrage_SweepAngle : Barrage_SweepAngle;
+			float lerpAmount = (Barrage_BarrageTimer - Barrage_StartupForSweep) / Barrage_TotalActiveTimeForOneBarrage;
+			rotation = MathHelper.Lerp(sweepStartAngle, sweepEndAngle, lerpAmount);
+			rotation = MathHelper.Clamp(rotation, -Barrage_SweepAngle, Barrage_SweepAngle);
 		}
 
 		Vector2 toTarget = Target.MountedCenter - NPC.Center;
 		Vector2 target = NPC.Center + toTarget.RotatedBy(rotation);
 		FaceTarget(target);
 
-		if (Timer >= Barrage_TimeToStartShooting && Timer % Barrage_TimeBetweenShots == 0f) {
+		// This controls actually firing, we only want to fire during our 'active' time, between our startup and wind down, and also only on frames we're actually allowed to shoot
+		if (Barrage_BarrageTimer >= Barrage_StartupTime && Barrage_BarrageTimer - Barrage_StartupTime <= Barrage_TotalActiveTimeForOneBarrage &&
+		    Barrage_BarrageTimer % Barrage_TimeBetweenShots == 0f) {
 			Vector2 velocity = NPC.DirectionTo(target) * 10f;
 			Projectile.NewProjectile(NPC.GetSource_FromAI(), NPC.Center, velocity, ModContent.ProjectileType<AlphaConstructProjectile>(), 10, 3f, Main.myPlayer);
-			frontLeftPanel.AddRecoil(velocity * -1, 0f);
-			frontRightPanel.AddRecoil(velocity * -1, 0f);
-			backLeftPanel.AddRecoil(velocity * -1, 0f);
-			backRightPanel.AddRecoil(velocity * -1, 0f);
+			frontLeftPanel.AddRecoil(velocity * -0.5f, 0f);
+			frontRightPanel.AddRecoil(velocity * -0.5f, 0f);
+			backLeftPanel.AddRecoil(velocity * -0.5f, 0f);
+			backRightPanel.AddRecoil(velocity * -0.5f, 0f);
 		}
 
-		if (Timer >= Barrage_TotalActiveTime) {
-			State = AIState.Idle;
+		// This controls what happens when we've finished any given barrage, either start our next or move onto our next state
+		if (Barrage_BarrageTimer > Barrage_TotalActiveTimeForOneBarrage + Barrage_TimeBetweenBarrages) {
+			Barrage_BarrageCounter++;
+			Barrage_BarrageTimer = Barrage_StartupForSweep;
+			if (Barrage_BarrageCounter >= Barrage_NumBarrages) {
+				State = AIState.Idle;
+				Timer = 0f;
+				Barrage_BarrageTimer = 0f;
+				Barrage_BarrageCounter = 0f;
+			}
 		}
 
-		frontLeftPanel.SetNextAnimationTarget(new Vector2(20f, -20f), -0.2f);
-		frontRightPanel.SetNextAnimationTarget(new Vector2(20f, 20f), 0.2f);
-		backLeftPanel.SetNextAnimationTarget(new Vector2(-10f, -16f), -0.5f);
-		backRightPanel.SetNextAnimationTarget(new Vector2(-10f, 16f), 0.5f);
+		frontLeftPanel.SetNextAnimationTarget(new Vector2(5f, -10f), -0.15f);
+		frontRightPanel.SetNextAnimationTarget(new Vector2(5f, 10f), 0.15f);
+		backLeftPanel.SetNextAnimationTarget(new Vector2(0f, -8f), -0.3f);
+		backRightPanel.SetNextAnimationTarget(new Vector2(0f, 8f), 0.3f);
+
+		Timer++;
+		Barrage_BarrageTimer++;
 
 		Dust.QuickDust(target, Color.Red);
-		Timer++;
 	}
 
 	public override void AI() {
@@ -255,12 +284,12 @@ public class XiConstruct : ModNPC
 			nextRotationOffset = nextRotation;
 		}
 
+		public void ReturnToIdle() => SetNextAnimationTarget(Vector2.Zero, 0f);
+
 		public void AddRecoil(Vector2 velocity, float rotation) {
 			curPositionOffset += velocity;
 			curRotationOffset += rotation;
 		}
-
-		public void ReturnToIdle() => SetNextAnimationTarget(Vector2.Zero, 0f);
 
 		public void RotateAroundParent(float amount) {
 			idlePosition = idlePosition.RotatedBy(amount);
