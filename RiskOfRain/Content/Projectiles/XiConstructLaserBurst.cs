@@ -19,22 +19,27 @@ public class XiConstructLaserBurst : ModProjectile
 	private const int NumSamplePoints = 3;
 	private const float BeamLengthChangeFactor = 0.75f;
 
-	private const float VisualEffectThreshold = 0.1f;
-	private const float OuterBeamOpacityMultiplier = 1f;
-	private const float InnerBeamOpacityMultiplier = 0.2f;
+	private const float VisualEffectThreshold = 0.8f;
+
+	private const float OuterBeamOpacityMultiplier = 0.75f;
+	private const float InnerBeamOpacityMultiplier = 0.15f;
 
 	private const float BeamLightBrightness = 0.8f;
-	private const float BeamColorHue = 0.15f;
-	private const float BeamColorSaturation = 0.7f;
-	private const float BeamColorLightness = 0.45f;
+	private const float BeamColorHue = 0.11f;
+	private const float BeamColorSaturation = 0.8f;
+	private const float BeamColorLightness = 0.53f;
 
 	private NPC Parent => Main.npc[(int)Projectile.ai[0]];
 
 	private ref float BeamLength => ref Projectile.ai[1];
 
+	// 0f == telegraph line
+	// 1f == actual laser line
+	private ref float State => ref Projectile.ai[2];
+
 	private Color GetOuterBeamColor() {
 		Color c = Main.hslToRgb(BeamColorHue, BeamColorSaturation, BeamColorLightness);
-		c.A = 64; // Manually reduce alpha so beams can overlap seamlessly
+		c.A = 150; // Manually reduce alpha so beams can overlap seamlessly
 		return c;
 	}
 
@@ -46,12 +51,11 @@ public class XiConstructLaserBurst : ModProjectile
 		Projectile.height = 18;
 		Projectile.penetrate = -1;
 		Projectile.tileCollide = false;
-		Projectile.scale = 2f;
+		Projectile.alpha = 255;
+		Projectile.scale = 0f;
 
 		// Enemy properties
 		Projectile.hostile = true;
-		Projectile.usesLocalNPCImmunity = true;
-		Projectile.localNPCHitCooldown = 10;
 	}
 
 	private float PerformBeamHitscan() {
@@ -70,24 +74,47 @@ public class XiConstructLaserBurst : ModProjectile
 	}
 
 	private void ProduceBeamDust(Color beamColor) {
-		// Create one dust per frame a small distance from where the beam ends.
-		const int type = 15;
+		if (Projectile.scale < VisualEffectThreshold) {
+			return;
+		}
+
+		const int type = 76;
+		Vector2 startPosition = Projectile.Center;
 		Vector2 endPosition = Projectile.Center + Projectile.velocity * (BeamLength - 14.5f * Projectile.scale);
 
-		// Main.rand.NextBool is used to give a 50/50 chance for the angle to point to the left or right.
-		// This gives the dust a 50/50 chance to fly off on either side of the beam.
-		float angle = Projectile.rotation + (Main.rand.NextBool() ? 1f : -1f) * MathHelper.PiOver2;
-		float startDistance = Main.rand.NextFloat(1f, 1.8f);
-		float scale = Main.rand.NextFloat(0.7f, 1.1f);
-		Vector2 velocity = angle.ToRotationVector2() * startDistance;
-		Dust dust = Dust.NewDustDirect(endPosition, 0, 0, type, velocity.X, velocity.Y, 0, beamColor, scale);
-		dust.color = beamColor;
-		dust.noGravity = true;
+		// Dust along the laser line
+		Vector2 laserLine = endPosition - startPosition;
+		int numLaserDust = (int)laserLine.Length() / 200;
+		for (int i = 0; i < numLaserDust; i++) {
+			Vector2 dustPosition = startPosition + laserLine * Main.rand.NextFloat();
+			float angle = Projectile.rotation + (Main.rand.NextBool() ? 1f : -1f) * MathHelper.PiOver2;
+			float startDistance = Main.rand.NextFloat(1f, 1.8f);
+			float scale = Main.rand.NextFloat(0.7f, 1.1f);
+			Vector2 velocity = angle.ToRotationVector2() * startDistance;
+			Dust dust = Dust.NewDustPerfect(dustPosition, type, velocity, 0, beamColor, scale);
+			dust.velocity = velocity;
+			dust.color = beamColor;
+			dust.noGravity = true;
+		}
 
-		// If the beam is currently large, make the dust faster and larger to match.
-		if (Projectile.scale > 1f) {
-			dust.velocity *= Projectile.scale;
-			dust.scale *= Projectile.scale;
+		int numEndDust = 1;
+		for (int i = 0; i < numEndDust; i++) {
+			// Main.rand.NextBool is used to give a 50/50 chance for the angle to point to the left or right.
+			// This gives the dust a 50/50 chance to fly off on either side of the beam.
+			float angle = Projectile.rotation + (Main.rand.NextBool() ? 1f : -1f) * MathHelper.PiOver2;
+			float startDistance = Main.rand.NextFloat(1f, 1.8f);
+			float scale = Main.rand.NextFloat(0.7f, 1.1f);
+			Vector2 velocity = angle.ToRotationVector2() * startDistance;
+			Dust dust = Dust.NewDustPerfect(endPosition, type, velocity, 0, beamColor, scale);
+			dust.velocity = velocity;
+			dust.color = beamColor;
+			dust.noGravity = true;
+
+			// If the beam is currently large, make the dust faster and larger to match.
+			if (Projectile.scale > 1f) {
+				dust.velocity *= Projectile.scale;
+				dust.scale *= Projectile.scale;
+			}
 		}
 	}
 
@@ -113,14 +140,27 @@ public class XiConstructLaserBurst : ModProjectile
 		Vector2 beamDims = new(Projectile.velocity.Length() * BeamLength, Projectile.width * Projectile.scale);
 
 		Color beamColor = GetOuterBeamColor();
-		ProduceBeamDust(beamColor);
-		if (Main.netMode != NetmodeID.Server) {
-			ProduceWaterRipples(beamDims);
+
+		if (Projectile.scale > VisualEffectThreshold) {
+			ProduceBeamDust(beamColor);
+			if (Main.netMode != NetmodeID.Server) {
+				ProduceWaterRipples(beamDims);
+			}
 		}
+
+		Projectile.alpha -= 10;
+		if (Projectile.alpha < 0) {
+			Projectile.alpha = 0;
+		}
+
+		float targetScale = State == 0f ? 0.2f : 1.4f;
+		Projectile.scale = MathHelper.Lerp(Projectile.scale, targetScale, 0.2f);
 
 		DelegateMethods.v3_1 = beamColor.ToVector3() * BeamLightBrightness;
 		Utils.PlotTileLine(Projectile.Center, Projectile.Center + Projectile.velocity * BeamLength, beamDims.Y, DelegateMethods.CastLight);
 	}
+
+	public override bool CanHitPlayer(Player target) => base.CanHitPlayer(target) && State == 1f;
 
 	public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox) {
 		if (projHitbox.Intersects(targetHitbox)) {

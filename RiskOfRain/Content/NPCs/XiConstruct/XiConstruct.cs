@@ -23,13 +23,14 @@ public class XiConstruct : ModNPC
 	private const int Barrage_TimeBetweenBarrages = 30;
 	private const float Barrage_SweepAngle = 0.261799f; // 15 degrees
 
-	private const int LaserBurst_StartupTime = 50;
-	private const int LaserBurst_TargetChaseCutoff = 30;
-
 	private float Barrage_TotalActiveTimeForOneBarrage => Barrage_NumShots * Barrage_TimeBetweenShots;
 
+	private const int LaserBurst_LaserStartupTime = 120;
+	private const int LaserBurst_TelegraphStartupTime = 10;
+	private const int LaserBurst_TargetChaseCutoff = 90;
+
 	private float RotationStrength => State switch {
-		AIState.Barrage => 0.15f,
+		AIState.Barrage or AIState.LaserBurst => 0.15f,
 		_ => 0.08f
 	};
 
@@ -234,15 +235,20 @@ public class XiConstruct : ModNPC
 
 		if (Timer < LaserBurst_TargetChaseCutoff) {
 			FaceTarget(Target.MountedCenter);
-		}
-
-		if (Timer == LaserBurst_StartupTime) {
-			LaserBarrage_Laser = Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<XiConstructLaserBurst>(), 10, 2f, Main.myPlayer,
-				NPC.whoAmI);
 			LaserBarrage_Laser.rotation = NPC.rotation;
 		}
 
-		if (Timer > 100f) {
+		if (Timer == LaserBurst_TelegraphStartupTime) {
+			LaserBarrage_Laser = Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<XiConstructLaserBurst>(), 10, 2f, Main.myPlayer,
+				NPC.whoAmI);
+		}
+
+		if (Timer == LaserBurst_LaserStartupTime) {
+			// Our laser uses ai[2] to know whether or not to be a telegraph line or laser line
+			LaserBarrage_Laser.ai[2] = 1f;
+		}
+
+		if (Timer > 200f) {
 			LaserBarrage_Laser.Kill();
 			State = AIState.Idle;
 			Timer = 0f;
