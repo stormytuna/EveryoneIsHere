@@ -87,27 +87,20 @@ public class XiConstructLaserBurst : ModProjectile
 		int numLaserDust = (int)laserLine.Length() / 200;
 		for (int i = 0; i < numLaserDust; i++) {
 			Vector2 dustPosition = startPosition + laserLine * Main.rand.NextFloat();
-			float angle = Projectile.rotation + (Main.rand.NextBool() ? 1f : -1f) * MathHelper.PiOver2;
-			float startDistance = Main.rand.NextFloat(1f, 1.8f);
-			float scale = Main.rand.NextFloat(0.7f, 1.1f);
-			Vector2 velocity = angle.ToRotationVector2() * startDistance;
-			Dust dust = Dust.NewDustPerfect(dustPosition, type, velocity, 0, beamColor, scale);
-			dust.velocity = velocity;
+			Dust dust = Dust.NewDustPerfect(dustPosition, type);
+			dust.velocity = Projectile.rotation.ToRotationVector2().RotatedByRandom(MathHelper.PiOver4) * (Main.rand.NextBool() ? 1f : -1f) * Main.rand.NextFloat(1f, 3f);
 			dust.color = beamColor;
+			dust.scale = Main.rand.NextFloat(0.7f, 1.1f);
 			dust.noGravity = true;
 		}
 
+		// Dust at the end point
 		int numEndDust = 1;
 		for (int i = 0; i < numEndDust; i++) {
-			// Main.rand.NextBool is used to give a 50/50 chance for the angle to point to the left or right.
-			// This gives the dust a 50/50 chance to fly off on either side of the beam.
-			float angle = Projectile.rotation + (Main.rand.NextBool() ? 1f : -1f) * MathHelper.PiOver2;
-			float startDistance = Main.rand.NextFloat(1f, 1.8f);
-			float scale = Main.rand.NextFloat(0.7f, 1.1f);
-			Vector2 velocity = angle.ToRotationVector2() * startDistance;
-			Dust dust = Dust.NewDustPerfect(endPosition, type, velocity, 0, beamColor, scale);
-			dust.velocity = velocity;
+			Dust dust = Dust.NewDustPerfect(endPosition, type);
+			dust.velocity = Projectile.rotation.ToRotationVector2().RotatedByRandom(MathHelper.PiOver4) * (Main.rand.NextBool() ? 1f : -1f) * Main.rand.NextFloat(1f, 3f);
 			dust.color = beamColor;
+			dust.scale = Main.rand.NextFloat(0.7f, 1.1f);
 			dust.noGravity = true;
 
 			// If the beam is currently large, make the dust faster and larger to match.

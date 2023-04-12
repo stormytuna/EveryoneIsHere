@@ -1,4 +1,5 @@
-﻿using EveryoneIsHere.RiskOfRain.Content.NPCs.AlphaConstruct;
+﻿using System.IO;
+using EveryoneIsHere.RiskOfRain.Content.NPCs.AlphaConstruct;
 using EveryoneIsHere.RiskOfRain.Content.Projectiles;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -25,9 +26,11 @@ public class XiConstruct : ModNPC
 
 	private float Barrage_TotalActiveTimeForOneBarrage => Barrage_NumShots * Barrage_TimeBetweenShots;
 
-	private const int LaserBurst_LaserStartupTime = 120;
-	private const int LaserBurst_TelegraphStartupTime = 10;
-	private const int LaserBurst_TargetChaseCutoff = 90;
+	private const int LaserBurst_StartupTime = 90;
+	private const int LaserBurst_StartupTimeForTelegraph = 10;
+	private const int LaserBurst_TargetChaseCutoff = 75;
+	private const int LaserBurst_LaserActiveTime = 40;
+	private const int LaserBurst_NumLasers = 4;
 
 	private float RotationStrength => State switch {
 		AIState.Barrage or AIState.LaserBurst => 0.15f,
@@ -47,20 +50,23 @@ public class XiConstruct : ModNPC
 		get => (AIState)NPC.ai[0];
 		set {
 			NPC.ai[0] = (float)value;
-			Timer = 0f;
+			timer = 0f;
 		}
 	}
 
-	private ref float Timer => ref NPC.ai[1];
+	private float timer;
 
-	private ref float Barrage_BarrageTimer => ref NPC.ai[2];
+	private ref float Barrage_BarrageTimer => ref NPC.ai[1];
 
-	private ref float Barrage_BarrageCounter => ref NPC.ai[3];
+	private ref float Barrage_BarrageCounter => ref NPC.ai[2];
 
 	private Projectile LaserBarrage_Laser {
-		get => Main.projectile[(int)NPC.ai[2]];
-		set => NPC.ai[2] = value.whoAmI;
+		get => Main.projectile[(int)NPC.ai[1]];
+		set => NPC.ai[1] = value.whoAmI;
 	}
+
+	private ref float LaserBarrage_LaserTimer => ref NPC.ai[2];
+	private ref float LaserBarrage_LaserCounter => ref NPC.ai[3];
 
 	public override void SetStaticDefaults() {
 		NPCID.Sets.DontDoHardmodeScaling[Type] = true;
@@ -118,7 +124,12 @@ public class XiConstruct : ModNPC
 		return false;
 	}
 
-	private void FaceTarget(Vector2 targetPos) {
+	private void FaceTarget(Vector2 targetPos, float rotationStrength = 0f) {
+		// Hacky, but we can't set this value in the method signature
+		if (rotationStrength == 0f) {
+			rotationStrength = RotationStrength;
+		}
+
 		float targetRotation = NPC.AngleTo(targetPos);
 		float oldRotation = NPC.rotation;
 		NPC.rotation = NPC.rotation.AngleLerp(targetRotation, RotationStrength);
@@ -152,8 +163,8 @@ public class XiConstruct : ModNPC
 
 		FaceTarget(Target.MountedCenter);
 
-		Timer++;
-		if (Timer >= 180f) {
+		timer++;
+		if (timer >= 180f) {
 			State = AIState.LaserBurst;
 		}
 
@@ -172,7 +183,7 @@ public class XiConstruct : ModNPC
 			return;
 		}
 
-		if (Timer == 0f) {
+		if (timer == 0f) {
 			Barrage_BarrageTimer = 0f;
 			Barrage_BarrageCounter = 0f;
 		}
@@ -209,7 +220,7 @@ public class XiConstruct : ModNPC
 			Barrage_BarrageTimer = Barrage_StartupForSweep;
 			if (Barrage_BarrageCounter >= Barrage_NumBarrages) {
 				State = AIState.Idle;
-				Timer = 0f;
+				timer = 0f;
 				Barrage_BarrageTimer = 0f;
 				Barrage_BarrageCounter = 0f;
 			}
@@ -220,7 +231,7 @@ public class XiConstruct : ModNPC
 		backLeftPanel.SetNextAnimationTarget(new Vector2(0f, -8f), -0.3f);
 		backRightPanel.SetNextAnimationTarget(new Vector2(0f, 8f), 0.3f);
 
-		Timer++;
+		timer++;
 		Barrage_BarrageTimer++;
 
 		Dust.QuickDust(target, Color.Red);
@@ -233,25 +244,38 @@ public class XiConstruct : ModNPC
 			return;
 		}
 
-		if (Timer < LaserBurst_TargetChaseCutoff) {
+		// TODO: Fix this
+		if (timer < LaserBurst_TargetChaseCutoff) {
 			FaceTarget(Target.MountedCenter);
-			LaserBarrage_Laser.rotation = NPC.rotation;
+		} else {
+			FaceTarget(Target.MountedCenter, RotationStrength / 50f);
 		}
 
-		if (Timer == LaserBurst_TelegraphStartupTime) {
+		LaserBarrage_Laser.rotation = NPC.rotation;
+
+		if (timer == LaserBurst_StartupTimeForTelegraph) {
 			LaserBarrage_Laser = Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<XiConstructLaserBurst>(), 10, 2f, Main.myPlayer,
 				NPC.whoAmI);
 		}
 
-		if (Timer == LaserBurst_LaserStartupTime) {
+		if (timer == LaserBurst_StartupTime) {
 			// Our laser uses ai[2] to know whether or not to be a telegraph line or laser line
 			LaserBarrage_Laser.ai[2] = 1f;
 		}
 
-		if (Timer > 200f) {
-			LaserBarrage_Laser.Kill();
-			State = AIState.Idle;
-			Timer = 0f;
+		if (timer == LaserBurst_StartupTime + LaserBurst_LaserActiveTime) {
+			// Our laser uses ai[2] to know whether or not to be a telegraph line or laser line
+			timer = LaserBurst_StartupTimeForTelegraph;
+			LaserBarrage_Laser.ai[2] = 0f;
+			LaserBarrage_LaserCounter++;
+			if (LaserBarrage_LaserCounter >= LaserBurst_NumLasers) {
+				timer = 0f;
+				LaserBarrage_Laser.Kill();
+				NPC.ai[1] = 0f; // Can't exactly assign Projectile as float :)
+				LaserBarrage_LaserCounter = 0f;
+				LaserBarrage_LaserTimer = 0f;
+				State = AIState.Idle;
+			}
 		}
 
 		frontLeftPanel.SetNextAnimationTarget(new Vector2(10f, -10f), 0f);
@@ -259,7 +283,7 @@ public class XiConstruct : ModNPC
 		backLeftPanel.SetNextAnimationTarget(new Vector2(-10f, -10f), 0f);
 		backRightPanel.SetNextAnimationTarget(new Vector2(-10f, 10f), 0f);
 
-		Timer++;
+		timer++;
 	}
 
 	public override void AI() {
@@ -359,6 +383,14 @@ public class XiConstruct : ModNPC
 
 			spriteBatch.Draw(texture, drawPosition, sourceRect, drawColor, rotation, origin, 1f, SpriteEffects.None, 0);
 		}
+	}
+
+	public override void SendExtraAI(BinaryWriter writer) {
+		writer.Write(timer);
+	}
+
+	public override void ReceiveExtraAI(BinaryReader reader) {
+		timer = reader.ReadSingle();
 	}
 
 	private enum AIState
