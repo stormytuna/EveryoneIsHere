@@ -84,7 +84,7 @@ public class ChanceShrine : ModTile
 		}
 
 		Player player = Main.LocalPlayer;
-		if (!player.CanBuyItem(chanceShrineEntity.Price)) {
+		if (!player.CanAfford(chanceShrineEntity.Price)) {
 			SoundEngine.PlaySound(EveryoneIsHereSounds.ShrineInsufficientFunds);
 			return false;
 		}
