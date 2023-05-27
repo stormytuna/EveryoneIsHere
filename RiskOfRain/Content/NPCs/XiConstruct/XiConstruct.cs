@@ -12,8 +12,12 @@ using Terraria.ModLoader;
 
 namespace EveryoneIsHere.RiskOfRain.Content.NPCs.XiConstruct;
 
+// WIP, might never be finished :shrug:
+
 public class XiConstruct : ModNPC
 {
+	public override bool IsLoadingEnabled(Mod mod) => false;
+
 	private const float MaxTargetRange = 200f * 16f;
 
 	private const int Barrage_StartupTime = 50;
@@ -31,6 +35,12 @@ public class XiConstruct : ModNPC
 	private const int LaserBurst_TargetChaseCutoff = 75;
 	private const int LaserBurst_LaserActiveTime = 40;
 	private const int LaserBurst_NumLasers = 4;
+
+	private const int LaserCannon_StartupTime = 150;
+	private const int LaserCannon_StartupTimeForTelegraph = 10;
+	private const int LaserCannon_TargetChaseCutoff = 110;
+	private const int LaserCannon_LaserActiveTime = 360;
+	private const float LaserCannon_LaserRotationStrength = 0.001f;
 
 	private float RotationStrength => State switch {
 		AIState.Barrage or AIState.LaserBurst => 0.15f,
@@ -67,6 +77,13 @@ public class XiConstruct : ModNPC
 
 	private ref float LaserBarrage_LaserTimer => ref NPC.ai[2];
 	private ref float LaserBarrage_LaserCounter => ref NPC.ai[3];
+
+	private Projectile LaserCannon_Laser {
+		get => Main.projectile[(int)NPC.ai[1]];
+		set => NPC.ai[1] = value.whoAmI;
+	}
+
+	private ref float LaserCannon_LaserTimer => ref NPC.ai[2];
 
 	public override void SetStaticDefaults() {
 		NPCID.Sets.DontDoHardmodeScaling[Type] = true;
@@ -124,12 +141,7 @@ public class XiConstruct : ModNPC
 		return false;
 	}
 
-	private void FaceTarget(Vector2 targetPos, float rotationStrength = 0f) {
-		// Hacky, but we can't set this value in the method signature
-		if (rotationStrength == 0f) {
-			rotationStrength = RotationStrength;
-		}
-
+	private void FaceTarget(Vector2 targetPos) {
 		float targetRotation = NPC.AngleTo(targetPos);
 		float oldRotation = NPC.rotation;
 		NPC.rotation = NPC.rotation.AngleLerp(targetRotation, RotationStrength);
@@ -165,7 +177,7 @@ public class XiConstruct : ModNPC
 
 		timer++;
 		if (timer >= 180f) {
-			State = AIState.LaserBurst;
+			State = AIState.LaserCannon;
 		}
 
 		frontLeftPanel.ReturnToIdle();
@@ -244,11 +256,8 @@ public class XiConstruct : ModNPC
 			return;
 		}
 
-		// TODO: Fix this
 		if (timer < LaserBurst_TargetChaseCutoff) {
 			FaceTarget(Target.MountedCenter);
-		} else {
-			FaceTarget(Target.MountedCenter, RotationStrength / 50f);
 		}
 
 		LaserBarrage_Laser.rotation = NPC.rotation;
@@ -268,6 +277,9 @@ public class XiConstruct : ModNPC
 			timer = LaserBurst_StartupTimeForTelegraph;
 			LaserBarrage_Laser.ai[2] = 0f;
 			LaserBarrage_LaserCounter++;
+
+			// TODO: Maybe explosion
+
 			if (LaserBarrage_LaserCounter >= LaserBurst_NumLasers) {
 				timer = 0f;
 				LaserBarrage_Laser.Kill();
@@ -282,6 +294,50 @@ public class XiConstruct : ModNPC
 		frontRightPanel.SetNextAnimationTarget(new Vector2(10f, 10f), 0f);
 		backLeftPanel.SetNextAnimationTarget(new Vector2(-10f, -10f), 0f);
 		backRightPanel.SetNextAnimationTarget(new Vector2(-10f, 10f), 0f);
+
+		timer++;
+	}
+
+	private void AI_LaserCannon() {
+		Main.NewText("Laser Cannon!");
+
+		if (!ValidateTarget()) {
+			return;
+		}
+
+		if (timer < LaserCannon_TargetChaseCutoff) {
+			FaceTarget(Target.MountedCenter);
+		}
+
+		LaserCannon_Laser.rotation = NPC.rotation;
+
+		if (timer == LaserCannon_StartupTimeForTelegraph) {
+			LaserCannon_Laser = Projectile.NewProjectileDirect(NPC.GetSource_FromAI(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<XiConstructLaserBurst>(), 10, 2f, Main.myPlayer,
+				NPC.whoAmI);
+		}
+
+		if (timer == LaserCannon_StartupTime) {
+			// Our laser uses ai[2] to know whether or not to be a telegraph line or laser line
+			LaserCannon_Laser.ai[2] = 1f;
+		}
+
+		if (timer >= LaserCannon_StartupTime) {
+			// TODO: Slightly rotate towards the player 
+		}
+
+		if (timer == LaserCannon_StartupTime + LaserCannon_LaserActiveTime) {
+			timer = 0f;
+			LaserCannon_Laser.Kill();
+			NPC.ai[1] = 0f; // Can't exactly assign Projectile as float :)
+			LaserBarrage_LaserCounter = 0f;
+			LaserBarrage_LaserTimer = 0f;
+			State = AIState.Idle;
+		}
+
+		frontLeftPanel.SetNextAnimationTarget(new Vector2(15f, -15f), 0f);
+		frontRightPanel.SetNextAnimationTarget(new Vector2(15f, 15f), 0f);
+		backLeftPanel.SetNextAnimationTarget(new Vector2(-15f, -15f), 0f);
+		backRightPanel.SetNextAnimationTarget(new Vector2(-15f, 15f), 0f);
 
 		timer++;
 	}
@@ -301,6 +357,9 @@ public class XiConstruct : ModNPC
 				break;
 			case AIState.LaserBurst:
 				AI_LaserBurst();
+				break;
+			case AIState.LaserCannon:
+				AI_LaserCannon();
 				break;
 		}
 
@@ -325,6 +384,16 @@ public class XiConstruct : ModNPC
 		frontRightPanel?.Draw(spriteBatch, orbDrawPosition, drawColor);
 
 		return false;
+
+		Main.instance.LoadNPC(Type);
+		Texture2D texture = TextureAssets.Npc[Type].Value;
+		Vector2 drawPosition = NPC.Center - Main.screenPosition;
+		Rectangle sourceRect = texture.Frame();
+		float rotation = NPC.rotation;
+		Vector2 origin = texture.Size() / 2f;
+		float scale = NPC.scale;
+		SpriteEffects effects = NPC.spriteDirection == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+		spriteBatch.Draw(texture, drawPosition, sourceRect, drawColor, rotation, origin, scale, effects, 0);
 	}
 
 	private class XiConstructPanel
